@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>GRISCH</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
+html,body{background:#fff;overflow-x:hidden;font-family:'Helvetica Neue',Arial,sans-serif;}
+input,select,button,textarea{font-family:inherit;}
+input::placeholder,textarea::placeholder{color:#C4C4C4;}
+::-webkit-scrollbar{display:none;}
+select{-webkit-appearance:none;appearance:none;}
+input[type=checkbox]{accent-color:#0A0A0A;}
+button{transition:opacity .1s,transform .08s;cursor:pointer;}
+button:active:not(:disabled){opacity:.6!important;transform:scale(.97)!important;}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes pulse{0%,100%{opacity:.25;transform:scale(.7)}50%{opacity:1;transform:scale(1)}}
+.skel{background:linear-gradient(90deg,#F1F1F1 0%,#E8E8E8 50%,#F1F1F1 100%);background-size:200% 100%;animation:shimmer 1.4s ease-in-out infinite;}
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);animation:fadeIn .18s ease-out;z-index:499;}
+.sheet-panel{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ECECEC;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,18px);box-shadow:0 -12px 48px rgba(0,0,0,0.12);animation:sheetUp .24s cubic-bezier(.32,.72,0,1);z-index:500;max-height:92dvh;}
+.sheet-panel.full{max-height:96dvh;}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%238A8A8A' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;}
+.field-base{width:100%;background:#F8F8F8;border:1px solid #ECECEC;padding:12px 14px;color:#0A0A0A;font-size:14px;outline:none;box-sizing:border-box;font-family:inherit;-webkit-appearance:none;appearance:none;border-radius:4px;transition:border-color .15s;}
+.field-base:focus{border-color:#B8B8B8;}
+.btn-primary{background:#0A0A0A;color:#fff;border:none;border-radius:4px;padding:13px 20px;font-size:13px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px;transition:opacity .12s,transform .1s;}
+.btn-primary:disabled{opacity:.38;cursor:not-allowed;}
+.btn-outline{background:#fff;color:#0A0A0A;border:1px solid #D6D6D6;border-radius:4px;padding:12px 18px;font-size:13px;font-weight:600;letter-spacing:0.03em;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px;transition:opacity .12s;}
+.btn-outline:disabled{opacity:.38;cursor:not-allowed;}
+.btn-small.btn-primary{padding:8px 14px;font-size:11px;}
+.btn-small.btn-outline{padding:7px 13px;font-size:11px;}
+.btn-danger{background:#fff;color:#7F1D1D;border:1px solid rgba(127,29,29,0.12);border-radius:4px;padding:12px 18px;font-size:13px;font-weight:600;letter-spacing:0.03em;cursor:pointer;font-family:inherit;width:100%;display:flex;align-items:center;justify-content:center;gap:7px;margin-top:10px;}
+.tabs-underline button{background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;padding:9px 0;font-size:10px;cursor:pointer;font-family:inherit;font-weight:800;letter-spacing:0.12em;color:#8A8A8A;transition:color .12s;}
+.tabs-underline button.active{border-bottom-color:#0A0A0A;color:#0A0A0A;}
+.card-item{flex-shrink:0;width:148px;background:none;border:1px solid #ECECEC;padding:0;cursor:pointer;text-align:left;overflow:hidden;transition:border-color .15s,box-shadow .15s;}
+.wishcard{border:1.5px solid #ECECEC;overflow:hidden;transition:opacity .2s,border-color .2s;}
+.wishcard.bought{border-color:#86EFAC;opacity:.65;}
+.rec-card{border:1px solid #ECECEC;overflow:hidden;}
+.outfit-card{border:1px solid #ECECEC;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;transition:border-color .15s;}
+.day-btn{background:none;border:1px solid #ECECEC;padding:9px 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:background .1s,border-color .1s;}
+.day-btn.selected{background:#0A0A0A;border-color:#0A0A0A;}
+.day-btn.today{background:#F1F1F1;border-color:#D6D6D6;}
+.score-bar-seg{flex:1;height:4px;border:none;cursor:pointer;background:#E8E8E8;transition:background .08s;border-radius:1px;}
+.score-bar-seg.filled{background:#0A0A0A;}
+.cat-pill{flex-shrink:0;border:1px solid #ECECEC;padding:5px 11px;font-size:9px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .1s,border-color .1s;background:#F8F8F8;color:#5A5A5A;}
+.cat-pill.active{background:#0A0A0A;border-color:#0A0A0A;color:#fff;}
+.outfit-item-btn{width:100%;background:#fff;border:none;border-bottom:1px solid #ECECEC;padding:9px 11px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:9px;transition:background .08s;}
+.outfit-item-btn.selected{background:#0A0A0A;}
+</style>
+</head>
+<body>
+<div id="app" style="width:100%;min-height:100dvh;background:#fff;color:#0A0A0A;max-width:430px;margin:0 auto;"></div>
+
+<div id="toast-container" style="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 36px);max-width:394px;z-index:900;display:flex;flex-direction:column;gap:6px;pointer-events:none;"></div>
+
+<script>
+// ━━━ TOKENS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const T={
+  bg:"#FFFFFF",s1:"#F8F8F8",s2:"#F1F1F1",s3:"#E8E8E8",
+  l1:"#ECECEC",l2:"#D6D6D6",l3:"#B8B8B8",
+  ink:"#0A0A0A",t1:"#1A1A1A",t2:"#5A5A5A",t3:"#8A8A8A",t4:"#C0C0C0",
+  g:"#14532D",gBg:"#F0FDF4",gBd:"#86EFAC",
+  r:"#7F1D1D",rBg:"#FEF2F2",rBd:"#FECACA",
+  a:"#78350F",aBg:"#FFFBEB",
+  b:"#1E3A8A",bBg:"#EFF6FF",
+};
+
+// ━━━ HELPERS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const getMonday=(off=0)=>{const n=new Date(),d=n.getDay(),m=new Date(n);m.setDate(n.getDate()-(d===0?6:d-1)+off*7);m.setHours(0,0,0,0);return m;};
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
+const fmt=d=>d.toISOString().slice(0,10);
+const pickSeed=(arr,seed)=>arr[Math.abs(seed)%arr.length];
+
+// ━━━ CONSTANTS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const CATS=["Pantalons","T-shirts","Pulls","Vestes","Chaussures","Accessoires","Shorts","Chemises"];
+const DAYS_S=["L","M","M","J","V","S","D"];
+const DAYS_F=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi","Dimanche"];
+const EV_TYPES=["École","Sport","Sortie","Travail","Détente","Soirée","RDV","Autre"];
+const GR_COLS=["Noir","Gris","Blanc","Vert foncé","Beige","Denim","Marron","Crème","Anthracite"];
+const COL_HEX={"Noir":"#101010","Blanc":"#EDE8DF","Gris":"#727272","Beige":"#C0A46E","Vert foncé":"#1C3620","Denim":"#284270","Marron":"#4A2410","Crème":"#D4CCAA","Anthracite":"#2C2C2C"};
+const COL_LIGHT=new Set(["Blanc","Crème","Beige"]);
+const EV_DOT={"École":"#1E3A8A","Sport":"#14532D","Sortie":"#4C1D95","Travail":"#1E3A8A","Détente":"#14532D","Soirée":"#831843","RDV":"#78350F","Autre":"#525252","Tenue libre":"#0A0A0A"};
+const COND_LABEL=["","Mauvais","Mauvais","Passable","Passable","Moyen","Moyen","Bon","Bon","Excellent","Parfait"];
+const COND_COLOR=[,"#7F1D1D","#7F1D1D","#78350F","#78350F","#78350F","#4A5568","#14532D","#14532D","#14532D","#14532D"];
+const KEY_COLORS=["Noir","Blanc","Gris","Beige","Vert foncé","Denim"];
+
+// ━━━ SAMPLE DATA ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const SW=[
+  {id:"w1",name:"Cargo Ripstop",brand:"Carhartt",color:"Noir",category:"Pantalons",scoreCut:9,scoreLike:9,scoreWorn:8,photo:""},
+  {id:"w2",name:"Cargo Double Knee",brand:"Dickies",color:"Beige",category:"Pantalons",scoreCut:8,scoreLike:8,scoreWorn:7,photo:""},
+  {id:"w3",name:"Chino slim",brand:"Uniqlo",color:"Gris",category:"Pantalons",scoreCut:7,scoreLike:6,scoreWorn:5,photo:""},
+  {id:"w4",name:"Tee oversized",brand:"H&M",color:"Blanc",category:"T-shirts",scoreCut:8,scoreLike:8,scoreWorn:9,photo:""},
+  {id:"w5",name:"Tee graphique",brand:"Carhartt",color:"Noir",category:"T-shirts",scoreCut:9,scoreLike:9,scoreWorn:8,photo:""},
+  {id:"w6",name:"Tee vintage washed",brand:"Vintage",color:"Gris",category:"T-shirts",scoreCut:7,scoreLike:7,scoreWorn:6,photo:""},
+  {id:"w7",name:"Pull maille épaisse",brand:"COS",color:"Beige",category:"Pulls",scoreCut:9,scoreLike:9,scoreWorn:7,photo:""},
+  {id:"w8",name:"Pull col rond",brand:"Uniqlo",color:"Gris",category:"Pulls",scoreCut:7,scoreLike:7,scoreWorn:6,photo:""},
+  {id:"w9",name:"Coach jacket",brand:"Nike",color:"Noir",category:"Vestes",scoreCut:8,scoreLike:8,scoreWorn:7,photo:""},
+  {id:"w10",name:"Veste de travail",brand:"Carhartt",color:"Vert foncé",category:"Vestes",scoreCut:10,scoreLike:10,scoreWorn:8,photo:""},
+  {id:"w11",name:"New Balance 550",brand:"New Balance",color:"Blanc",category:"Chaussures",scoreCut:9,scoreLike:9,scoreWorn:8,photo:""},
+  {id:"w12",name:"Adidas Samba",brand:"Adidas",color:"Blanc",category:"Chaussures",scoreCut:9,scoreLike:8,scoreWorn:7,photo:""},
+  {id:"w13",name:"Casquette 6 panel",brand:"Carhartt",color:"Noir",category:"Accessoires",scoreCut:8,scoreLike:8,scoreWorn:7,photo:""},
+];
+const SE=(()=>{const m=getMonday();return[
+  {id:"e1",type:"École",date:fmt(m),dayOfWeek:0,repeat:true,outfit:"Cargo Ripstop noir + Tee blanc + NB 550",note:"",outfitRating:{style:8,practical:9}},
+  {id:"e2",type:"Sport",date:fmt(addDays(m,1)),dayOfWeek:1,repeat:false,outfit:"Short noir + Tee gris + AF1",note:"Basket le soir",outfitRating:{style:6,practical:10}},
+  {id:"e3",type:"Sortie",date:fmt(addDays(m,4)),dayOfWeek:4,repeat:false,outfit:"Cargo beige + Pull COS + Samba",note:"Ciné avec amis",outfitRating:{style:9,practical:7}},
+  {id:"e4",type:"École",date:fmt(addDays(m,2)),dayOfWeek:2,repeat:true,outfit:"Chino gris + Tee graphique + NB 550",note:"",outfitRating:{}},
+  {id:"e5",type:"Détente",date:fmt(addDays(m,5)),dayOfWeek:5,repeat:false,outfit:"",note:"Week-end relax",outfitRating:{}},
+]})();
+const SWL=[
+  {id:"wl1",name:"Bomber satin",category:"Vestes",color:"Noir",brand:"Our Legacy",price:"180",reason:"Layering hivernal",bought:false},
+  {id:"wl2",name:"Knit col roulé",category:"Pulls",color:"Gris",brand:"COS",price:"80",reason:"Basique manquant",bought:false},
+  {id:"wl3",name:"Jordan 1 Low",category:"Chaussures",color:"Beige",brand:"Nike",price:"110",reason:"Coloris parfait",bought:true},
+];
+const SOF=[
+  {id:"o1",name:"Everyday Minimal",items:["Cargo Ripstop","Tee oversized","New Balance 550"],note:"Go-to du quotidien",rating:9},
+  {id:"o2",name:"Clean Street",items:["Chino slim","Pull maille épaisse","Adidas Samba"],note:"Sortie décontractée",rating:8},
+];
+
+// ━━━ STATE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const state = {
+  tab: 0,
+  wardrobe: JSON.parse(localStorage.getItem('gq_wr') || 'null') || SW,
+  events: JSON.parse(localStorage.getItem('gq_ev') || 'null') || SE,
+  outfits: JSON.parse(localStorage.getItem('gq_of') || 'null') || SOF,
+  wish: JSON.parse(localStorage.getItem('gq_wl') || 'null') || SWL,
+  // Planning
+  weekOffset: 0,
+  selDay: (()=>{const t=new Date().getDay();return t===0?6:t-1;})(),
+  // Sheets
+  activeSheet: null,
+  sheetData: {},
+  // Forms
+  evForm: {},
+  outForm: {},
+  rateForm: {},
+  wardrobeForm: {},
+  outfitForm: {},
+  wishForm: {},
+  // UI
+  wardrobeSec: 'pieces',
+  wardrobeSearch: '',
+  wardrobeCatFilter: null,
+  analysis: null,
+  analysisLoading: false,
+  styleRecs: [],
+  styleRecsLoading: false,
+  styleTab: 'recs',
+  aiSug: '',
+  recKey: 0,
+  recText: '',
+  typewriterDisplayed: '',
+  typewriterInterval: null,
+};
+
+const save = (key, val) => localStorage.setItem(key, JSON.stringify(val));
+
+// ━━━ TOAST ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function toast(msg, type='ok') {
+  const id = Date.now() + Math.random();
+  const el = document.createElement('div');
+  el.style.cssText = `background:${type==='err'?T.r:T.ink};color:#fff;padding:11px 15px;font-size:12px;font-weight:700;letter-spacing:0.02em;display:flex;align-items:center;gap:9px;animation:toastIn .2s cubic-bezier(.32,.72,0,1);`;
+  const dot = type==='err'?'#FCA5A5':type==='g'?'#86EFAC':'rgba(255,255,255,0.4)';
+  el.innerHTML = `<div style="width:5px;height:5px;background:${dot};flex-shrink:0;"></div>${msg}`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(()=>el.remove(), 2600);
+}
+
+// ━━━ TYPEWRITER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function startTypewriter(text, onUpdate, speed=16) {
+  if (state.typewriterInterval) { clearInterval(state.typewriterInterval); state.typewriterTimeout && clearTimeout(state.typewriterTimeout); }
+  state.typewriterDisplayed = '';
+  let i = 0;
+  state.typewriterTimeout = setTimeout(()=>{
+    state.typewriterInterval = setInterval(()=>{
+      i++;
+      state.typewriterDisplayed = text.slice(0, i);
+      onUpdate(state.typewriterDisplayed, i < text.length);
+      if (i >= text.length) { clearInterval(state.typewriterInterval); state.typewriterInterval = null; }
+    }, speed);
+  }, 360);
+}
+
+// ━━━ SVG ICONS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const PX={
+  cal:["M3 9h18M8 2v3m8-3v3M3 6a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6z"],
+  hng:["M12 3a2 2 0 012 2v1.5l8 5.5c.4.3.4 1 0 1.3l-8 4.7-8-4.7c-.4-.3-.4-1 0-1.3l8-5.5V5a2 2 0 012-2z"],
+  str:["M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"],
+  pls:["M12 5v14M5 12h14"],
+  edt:["M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7","M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"],
+  del:["M3 6h18","M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2","M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"],
+  cls:["M18 6L6 18M6 6l12 12"],
+  chk:["M20 6L9 17l-5-5"],
+  cR:["M9 18l6-6-6-6"],
+  cL:["M15 18l-6-6 6-6"],
+  spk:["M13 2L3 14h9l-1 8 10-12h-9l1-8z"],
+  lyr:["M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"],
+  rat:["M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 13.9h7.6L12 2z"],
+  bar:["M18 20V10","M12 20V4","M6 20v-6"],
+  srch:["M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"],
+};
+function ico(n, size=16, color='currentColor', sw=1.8) {
+  const paths = (PX[n]||PX.pls).map(d=>`<path d="${d}"/>`).join('');
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+}
+
+// ━━━ LOCAL AI ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const LocalAI = {
+  dailyRec(wardrobe, dayIndex, seed=0) {
+    if (!wardrobe.length) return "Commence par ajouter des vêtements à ta garde-robe pour recevoir des suggestions personnalisées.";
+    if (wardrobe.length < 3) return "Ajoute quelques pièces supplémentaires — il en faut au minimum 3 pour composer une tenue.";
+    const by = cat => wardrobe.filter(w => w.category === cat);
+    const best = arr => arr.length ? [...arr].sort((a,b)=>(b.scoreLike+b.scoreCut)-(a.scoreLike+a.scoreCut))[0] : null;
+    const weekEnd = dayIndex >= 5;
+    const day = DAYS_F[dayIndex].toLowerCase();
+    const pantalon = best(by("Pantalons"));
+    const short = weekEnd ? best(by("Shorts")) : null;
+    const bas = (weekEnd && short) ? short : pantalon;
+    const tshirt = best(by("T-shirts"));
+    const pull = weekEnd ? null : best(by("Pulls"));
+    const haut = pull && dayIndex <= 2 ? pull : tshirt;
+    const veste = weekEnd ? null : best(by("Vestes"));
+    const shoes = best(by("Chaussures"));
+    const parts = [bas, haut, veste, shoes].filter(Boolean);
+    if (parts.length < 2) return "Ta garde-robe est trop peu diversifiée pour composer des tenues complètes.";
+    const outfitStr = parts.map(p => p.name).join(" + ");
+    const intros = [
+      `Pour ce ${day}, composition idéale :`,
+      `Tenue recommandée pour ${day} —`,
+      `Le combo du ${day} :`,
+      `Mise sur cette sélection ${day} :`,
+      `Proposition calibrée pour ${day} :`,
+    ];
+    const intro = pickSeed(intros, dayIndex + seed);
+    return `${intro} ${outfitStr}.`;
+  },
+  outfitSuggest(wardrobe, eventType, dayIndex) {
+    if (!wardrobe.length) return "Ajoute d'abord des vêtements à ta garde-robe.";
+    const by = cat => wardrobe.filter(w => w.category === cat);
+    const best = arr => arr.length ? [...arr].sort((a,b)=>(b.scoreLike+b.scoreCut)-(a.scoreLike+a.scoreCut))[0] : null;
+    const byColor = (arr, color) => arr.filter(w => w.color === color);
+    const rules = {
+      "École": () => { const pant=best(by("Pantalons")); const haut=best(by("T-shirts"))||best(by("Pulls")); const shoes=best(by("Chaussures")); return [pant,haut,shoes].filter(Boolean); },
+      "Soirée": () => { const pantsNoir=byColor(by("Pantalons"),"Noir"); const pant=pantsNoir.length?best(pantsNoir):best(by("Pantalons")); const veste=best(by("Vestes")); const tee=best(by("T-shirts")); const shoes=best(by("Chaussures")); return [pant,tee,veste,shoes].filter(Boolean); },
+      "Sport": () => { const short=best(by("Shorts"))||best(by("Pantalons")); const tee=best(by("T-shirts")); const shoes=best(by("Chaussures")); return [short,tee,shoes].filter(Boolean); },
+      "Détente": () => { const pant=best(by("Pantalons")); const pull=best(by("Pulls"))||best(by("T-shirts")); const shoes=best(by("Chaussures")); return [pant,pull,shoes].filter(Boolean); },
+      "default": () => { const pant=best(by("Pantalons")); const haut=best(by("T-shirts"))||best(by("Pulls")); const outer=best(by("Vestes")); const shoes=best(by("Chaussures")); return [pant,haut,outer,shoes].filter(Boolean); }
+    };
+    const fn = rules[eventType] || rules["default"];
+    const pieces = fn();
+    if (!pieces.length) return "Pas assez de vêtements pour cette occasion.";
+    return pieces.map(p => `${p.name} ${p.color.toLowerCase()}`).join(" + ");
+  },
+  analyze(wardrobe) {
+    const by = cat => wardrobe.filter(w => w.category === cat);
+    const avg = arr => { const clean=arr.filter(v=>typeof v==="number"&&!isNaN(v)); return clean.length?Math.round(clean.reduce((s,v)=>s+v,0)/clean.length*10)/10:0; };
+    const avgScore = arr => avg(arr.flatMap(w=>[w.scoreLike||0,w.scoreCut||0]));
+    const catScore = cat => {
+      const items=by(cat);
+      if(!items.length) return 1;
+      const qty=Math.min(items.length,5);
+      const qtyScore=(qty/5)*5;
+      const qualScore=avgScore(items)/2;
+      return Math.min(10,Math.round((qtyScore+qualScore)*10)/10);
+    };
+    const scores={};
+    CATS.forEach(c=>{scores[c]=catScore(c);});
+    const colorCount={};
+    wardrobe.forEach(w=>{colorCount[w.color]=(colorCount[w.color]||0)+1;});
+    const missingColors=KEY_COLORS.filter(c=>!colorCount[c]);
+    const lowLiked=wardrobe.filter(w=>(w.scoreLike||0)<5);
+    const feedbackParts=[];
+    if(wardrobe.length<5) feedbackParts.push("Ta garde-robe est encore très légère. Commence par ajouter les basiques essentiels.");
+    else if(wardrobe.length<10) feedbackParts.push("Bonne base, mais il manque encore de la diversité pour alterner les looks.");
+    else feedbackParts.push("Ta garde-robe a une belle consistance, l'essentiel est couvert.");
+    const weakCats=CATS.filter(c=>catScore(c)<4);
+    if(weakCats.length) {
+      const labels={"Pantalons":"pantalons","T-shirts":"t-shirts","Pulls":"pulls","Vestes":"vestes","Chaussures":"chaussures","Accessoires":"accessoires","Shorts":"shorts","Chemises":"chemises"};
+      feedbackParts.push(`Catégories à renforcer : ${weakCats.map(c=>labels[c]).join(", ")}.`);
+    }
+    if(missingColors.length>=3) feedbackParts.push(`Ton vestiaire manque de nuances — il n'y a pas de pièces en ${missingColors.slice(0,3).join(", ")}.`);
+    else if(missingColors.length) feedbackParts.push(`Pour plus de polyvalence, explore les coloris : ${missingColors.join(", ")}.`);
+    if(lowLiked.length>wardrobe.length*0.4) feedbackParts.push("Beaucoup de pièces ont une faible appréciation — envisage de trier et de renouveler.");
+    else if(lowLiked.length>0) feedbackParts.push(`${lowLiked.length} pièce${lowLiked.length>1?"s ont":"  a"} une note d'appréciation basse — à surveiller.`);
+    const allGood=weakCats.length===0&&missingColors.length<=1&&lowLiked.length===0;
+    if(allGood) feedbackParts.push("Ta garde-robe est bien équilibrée 👍");
+    const details={};
+    CATS.forEach(cat=>{
+      const items=by(cat);
+      const s=catScore(cat);
+      if(!items.length){
+        const suggestions={"Pantalons":"Aucun pantalon — c'est une pièce fondamentale. Commence par un cargo ou un chino.","T-shirts":"Pas de t-shirts basiques. Ajoute au moins 2-3 couleurs neutres.","Pulls":"Aucun pull. Pour l'automne-hiver, c'est indispensable.","Vestes":"Pas de veste de dessus. Un coach jacket ou une veste de travail ferait parfaitement l'affaire.","Chaussures":"Aucune chaussure enregistrée. Commence par une paire polyvalente type NB 550 ou Samba.","Accessoires":"Pas d'accessoires. Une casquette ou une ceinture peut changer un look.","Shorts":"Aucun short. Utile pour le sport et les sorties estivales.","Chemises":"Aucune chemise. Une overshirt ou flannel ouvre beaucoup de possibilités."};
+        details[cat]=suggestions[cat]||`Aucune pièce dans cette catégorie — à ajouter.`;
+      } else {
+        const avgQ=avgScore(items);
+        const topItem=[...items].sort((a,b)=>(b.scoreLike+b.scoreCut)-(a.scoreLike+a.scoreCut))[0];
+        if(s>=8) details[cat]=`Excellent niveau (${items.length} pièce${items.length>1?"s":""}). Meilleure pièce : ${topItem.name}. Continue ainsi.`;
+        else if(s>=6) details[cat]=`Bonne base (${items.length} pièce${items.length>1?"s":""}), qualité moyenne ${avgQ.toFixed(1)}/10. Quelques ajouts ciblés l'élèveraient davantage.`;
+        else if(s>=4) details[cat]=`Catégorie légère (${items.length} pièce${items.length>1?"s":""}). Diversifie les coloris et vise une meilleure qualité de coupe.`;
+        else details[cat]=`Très peu de pièces ici (${items.length}). C'est une priorité d'achat pour équilibrer ta garde-robe.`;
+      }
+    });
+    return {scores,feedback:feedbackParts.join(" "),details};
+  },
+  styleRecs(wardrobe) {
+    const by = cat => wardrobe.filter(w => w.category === cat);
+    const colorCount={};
+    wardrobe.forEach(w=>{colorCount[w.color]=(colorCount[w.color]||0)+1;});
+    const hasColor=c=>!!colorCount[c];
+    const catalog={
+      "Pantalons":[{name:"Cargo Ripstop",brand:"Carhartt WIP",color:"Vert foncé",price:"110",reason:"Coloris signature grisch, très polyvalent"},{name:"Cargo Double Knee",brand:"Dickies",color:"Beige",price:"65",reason:"Basique indémodable, coupe workwear parfaite"},{name:"Baggy Jean",brand:"Levi's",color:"Denim",price:"80",reason:"Le denim droit manque dans l'arsenal"},{name:"Cargo Fatigue",brand:"Engineered Garments",color:"Anthracite",price:"180",reason:"Pièce phare qui élève immédiatement un outfit"}],
+      "T-shirts":[{name:"Tee pocket",brand:"Carhartt WIP",color:"Noir",price:"35",reason:"Basique noir indispensable au vestiaire grisch"},{name:"Tee oversized",brand:"Uniqlo",color:"Blanc",price:"20",reason:"Le blanc oversized est le fondement de tout look minimal"},{name:"L/S Tee",brand:"Colorful Standard",color:"Gris",price:"45",reason:"Manche longue polyvalente, parfaite en transition"},{name:"Tee Heritage",brand:"Norse Projects",color:"Beige",price:"55",reason:"Coupe et matière premium pour un quotidien soigné"}],
+      "Pulls":[{name:"Lambswool Crew",brand:"Uniqlo",color:"Crème",price:"60",reason:"Laine douce, coloris neutre, excellent rapport qualité/prix"},{name:"Heavy Knit",brand:"COS",color:"Anthracite",price:"90",reason:"Grosse maille structurée qui ancre n'importe quel look"},{name:"Zip Sweat",brand:"Carhartt WIP",color:"Gris",price:"85",reason:"La veste pull — hybride pratique et esthétique"},{name:"Col roulé côtelé",brand:"Arket",color:"Noir",price:"75",reason:"Pièce de layering puissante, facile à intégrer"}],
+      "Vestes":[{name:"Bomber Coach",brand:"Nike",color:"Noir",price:"95",reason:"Intemporel, se porte sur tout, durable"},{name:"OA Overshirt",brand:"Carhartt WIP",color:"Beige",price:"130",reason:"L'overshirt est le layering ultime du grisch"},{name:"Fleece Polaire",brand:"Patagonia",color:"Gris",price:"150",reason:"Fonctionnel et esthétique, parfait pour les journées froides"},{name:"Harrington",brand:"Baracuta",color:"Vert foncé",price:"250",reason:"Pièce investissement, coupe iconique"}],
+      "Chaussures":[{name:"NB 574",brand:"New Balance",color:"Gris",price:"90",reason:"Alternative au 550, silhouette plus chunky trendy"},{name:"Chuck 70 Hi",brand:"Converse",color:"Noir",price:"85",reason:"Canvas noir qui va avec absolument tout"},{name:"Clarks Desert Boot",brand:"Clarks",color:"Beige",price:"110",reason:"Chukka indémodable, pied léger en toute saison"},{name:"NB 1906R",brand:"New Balance",color:"Blanc",price:"130",reason:"Running tech d'archive — esthétique très forte"}],
+      "Accessoires":[{name:"Bonnet Watch",brand:"Carhartt WIP",color:"Noir",price:"30",reason:"Accessoire hiver essentiel, silhouette épurée"},{name:"Tote Canvas",brand:"Carhartt WIP",color:"Beige",price:"35",reason:"Fonctionnel et stylistique, complète n'importe quelle tenue"},{name:"Ceinture tactical",brand:"Uniqlo",color:"Noir",price:"20",reason:"Détail discret qui structure un look bas de gamme"},{name:"Chaussettes hautes",brand:"Stance",color:"Gris",price:"18",reason:"Petit détail visible qui fait la différence"}],
+      "Shorts":[{name:"Cargo Short",brand:"Carhartt WIP",color:"Beige",price:"70",reason:"Short workwear polyvalent sport et casual"},{name:"Mesh Short",brand:"Nike",color:"Noir",price:"45",reason:"Sport et streetwear, se porte en toutes occasions"},{name:"Bermuda Lin",brand:"COS",color:"Crème",price:"65",reason:"Élégant et léger pour l'été, facile à porter"}],
+      "Chemises":[{name:"Flannel Shirt",brand:"Pendleton",color:"Beige",price:"100",reason:"Chemise de bûcheron devenue icône streetwear"},{name:"Oxford BD",brand:"Ralph Lauren",color:"Blanc",price:"85",reason:"Basique élégant-casual très polyvalent"},{name:"Work Shirt",brand:"Dickies",color:"Denim",price:"55",reason:"Esprit workwear authentique, très grisch"}],
+    };
+    const priorities=[];
+    CATS.forEach(cat=>{
+      const items=by(cat);
+      const catItems=catalog[cat]||[];
+      if(!catItems.length) return;
+      const candidates=catItems.filter(r=>!by(cat).some(w=>w.name===r.name));
+      if(!items.length) candidates.slice(0,2).forEach(r=>priorities.push({...r,category:cat,priority:9+Math.random()}));
+      else if(items.length<2) candidates.slice(0,1).forEach(r=>priorities.push({...r,category:cat,priority:7+Math.random()}));
+      else { const missing=candidates.filter(r=>!hasColor(r.color)); missing.slice(0,1).forEach(r=>priorities.push({...r,category:cat,priority:5+Math.random()})); }
+    });
+    return priorities.sort((a,b)=>b.priority-a.priority).slice(0,8).map(r=>({...r,priority:Math.round(r.priority)}));
+  },
+  colorReport(wardrobe) {
+    const colorCount={};
+    wardrobe.forEach(w=>{colorCount[w.color]=(colorCount[w.color]||0)+1;});
+    const missing=KEY_COLORS.filter(c=>!colorCount[c]);
+    const dominated=Object.entries(colorCount).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    const lines=[];
+    if(dominated.length) lines.push(`Couleurs dominantes : ${dominated.map(([c,n])=>`${c} (${n})`).join(", ")}.`);
+    if(missing.length){
+      const msgs={"Noir":"Le noir est absent — c'est la base de tout vestiaire grisch.","Blanc":"Pas de pièce blanche. Le blanc structure les tenues neutres.","Gris":"Le gris manque — c'est la couleur de transition parfaite.","Beige":"Le beige apporte de la chaleur et se marie avec tout.","Vert foncé":"Le vert foncé est le coloris signature du style workwear grisch.","Denim":"Pas de denim. Un jean ou une chemise denim est un fondamental."};
+      missing.slice(0,3).forEach(c=>{if(msgs[c]) lines.push(msgs[c]);});
+    }
+    if(!missing.length&&wardrobe.length>=6) lines.push("Excellent équilibre chromatique. Ta palette est cohérente.");
+    return lines.join(" ");
+  },
+};
+
+// ━━━ SPIDER CHART ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderSpider(scores) {
+  const cats=Object.keys(scores), n=cats.length;
+  if(n<3) return '';
+  const W=260,cx=130,cy=122,r=86;
+  const pt=(i,ratio)=>{const a=(i/n)*2*Math.PI-Math.PI/2;return[cx+r*ratio*Math.cos(a),cy+r*ratio*Math.sin(a)];};
+  const sPts=cats.map((_,i)=>pt(i,Math.max(0.05,(scores[cats[i]]||0)/10)));
+  const lPts=cats.map((_,i)=>pt(i,1.28));
+  const gp=rv=>cats.map((_,i)=>pt(i,rv)).map((p,i)=>`${i===0?"M":"L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ")+"Z";
+  const sp=sPts.map((p,i)=>`${i===0?"M":"L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ")+"Z";
+  const sc=v=>v>=7?T.g:v>=5?T.a:T.r;
+  const gridPaths=[.25,.5,.75,1].map(rv=>`<path d="${gp(rv)}" fill="none" stroke="${rv===1?T.l2:T.l1}" stroke-width="${rv===1?1:.7}"/>`).join('');
+  const axisLines=cats.map((_,i)=>{const p=pt(i,1);return`<line x1="${cx}" y1="${cy}" x2="${p[0]}" y2="${p[1]}" stroke="${T.l1}" stroke-width=".7"/>`;}).join('');
+  const gridLabels=[2.5,5,7.5].map((v,i)=>`<text x="${cx+3}" y="${cy-r*((i+1)*.25)+3}" fill="${T.t4}" font-size="7.5" font-family="inherit">${v}</text>`).join('');
+  const dataPath=`<path d="${sp}" fill="rgba(0,0,0,0.05)" stroke="${T.ink}" stroke-width="1.6"/>`;
+  const dots=sPts.map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="4.5" fill="${sc(scores[cats[i]]||0)}" stroke="${T.bg}" stroke-width="2.5"/>`).join('');
+  const labels=cats.map((c,i)=>{const[lx,ly]=lPts[i];const anch=lx<cx-12?"end":lx>cx+12?"start":"middle";return`<text x="${lx}" y="${ly}" text-anchor="${anch}" dominant-baseline="middle" fill="${T.t2}" font-size="9.5" font-family="inherit" font-weight="700">${c}</text>`;}).join('');
+  const svgHtml=`<svg width="${W}" height="244" style="display:block;margin:0 auto;">${gridPaths}${axisLines}${gridLabels}${dataPath}${dots}${labels}</svg>`;
+  const tableRows=cats.map(c=>{
+    const s=scores[c]||0;
+    const col=sc(s);
+    const condLabel=COND_LABEL[Math.round(s)]||'';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid ${T.l1};">
+      <div style="width:5px;height:5px;background:${col};flex-shrink:0;"></div>
+      <span style="font-size:11px;color:${T.t2};flex:1;font-weight:600;">${c}</span>
+      <span style="font-size:9px;font-weight:700;color:${col};letter-spacing:0.08em;text-transform:uppercase;">${condLabel}</span>
+      <span style="font-size:13px;color:${T.ink};font-weight:900;min-width:20px;text-align:right;">${s}</span>
+    </div>`;
+  }).join('');
+  return svgHtml+`<div style="border-top:1px solid ${T.l1};margin-top:12px;">${tableRows}</div>`;
+}
+
+// ━━━ COLOR TILE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function colorTile(color, h=170, w='100%', extraStyle='') {
+  const hex=COL_HEX[color]||T.s2;
+  const lt=COL_LIGHT.has(color);
+  return `<div style="background:${hex};height:${h}px;width:${w};display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;${extraStyle}"><span style="font-size:8px;font-weight:800;letter-spacing:0.2em;text-transform:uppercase;color:${lt?'rgba(0,0,0,0.2)':'rgba(255,255,255,0.2)'};">${color}</span></div>`;
+}
+
+// ━━━ SCORE BADGE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function scoreBadge(val, small=false) {
+  const c=val>=7?T.g:val>=5?T.a:T.r;
+  const bg=val>=7?T.gBg:val>=5?T.aBg:T.rBg;
+  return `<span style="font-size:${small?9:10}px;font-weight:800;color:${c};background:${bg};border:1px solid ${c}22;padding:${small?'2px 5px':'3px 7px'};letter-spacing:0.04em;">${val}/10</span>`;
+}
+
+// ━━━ COLOR PICKER HTML ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderColorPicker(selectedColor, formKey) {
+  const swatches = GR_COLS.map(c => {
+    const sel = selectedColor === c;
+    const hex = COL_HEX[c] || T.s2;
+    const lt = COL_LIGHT.has(c);
+    const checkmark = sel ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">${ico('chk', 12, lt?T.ink:'#fff', 3)}</div>` : '';
+    return `<button onclick="setFormColor('${formKey}','${c}')" title="${c}"
+      style="width:32px;height:32px;background:${hex};border:${sel?`2.5px solid ${T.ink}`:`1px solid ${lt?T.l2:'transparent'}`};cursor:pointer;position:relative;outline:${sel?`2px solid ${T.bg}`:'none'};outline-offset:${sel?-4:0}px;transform:${sel?'scale(1.15)':'scale(1)'};box-shadow:${sel?'0 2px 8px rgba(0,0,0,0.18)':'none'};transition:transform .12s,box-shadow .12s;">${checkmark}</button>`;
+  }).join('');
+  const preview = selectedColor ? `<div style="display:flex;align-items:center;gap:8px;margin-top:9px;"><div style="width:16px;height:16px;background:${COL_HEX[selectedColor]||T.s2};border:1px solid ${T.l1};"></div><span style="font-size:11px;color:${T.t2};font-weight:600;letter-spacing:0.04em;">${selectedColor}</span></div>` : '';
+  return `<div style="margin-bottom:16px;">
+    <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.t3};margin-bottom:8px;">Couleur</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">${swatches}</div>
+    ${preview}
+  </div>`;
+}
+
+// ━━━ SHEET SYSTEM ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function openSheet(id) {
+  state.activeSheet = id;
+  document.body.style.overflow = 'hidden';
+  renderSheets();
+}
+function closeSheet() {
+  state.activeSheet = null;
+  document.body.style.overflow = '';
+  renderSheets();
+  render();
+}
+
+// ━━━ SCORE SLIDER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function scoreSliderHTML(label, val, onchangeFn) {
+  const condLabel = COND_LABEL[val] || '';
+  const condColor = COND_COLOR[val] || T.t3;
+  const segs = Array.from({length:10}, (_,i) =>
+    `<button class="score-bar-seg${i<val?' filled':''}" onclick="${onchangeFn}(${i+1})"></button>`
+  ).join('');
+  return `<div style="margin-bottom:22px;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
+      <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.t3};">${label}</div>
+      <div style="display:flex;align-items:baseline;gap:4px;">
+        <span style="font-size:28px;font-weight:900;color:${T.ink};letter-spacing:-0.05em;line-height:1;">${val}</span>
+        <span style="font-size:11px;color:${T.t3};">/10</span>
+        <span style="font-size:9px;font-weight:700;color:${condColor};letter-spacing:0.08em;text-transform:uppercase;">${condLabel}</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:3px;">${segs}</div>
+  </div>`;
+}
+
+// ━━━ FIELD HELPERS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function fieldHTML(label, value, onchange, placeholder='', multiline=false) {
+  const labelHtml = label ? `<div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.t3};margin-bottom:6px;">${label}</div>` : '';
+  const escaped = (value||'').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  let input;
+  if (multiline) {
+    input = `<textarea class="field-base" rows="3" style="resize:none;line-height:1.55;" oninput="${onchange}" placeholder="${placeholder}">${(value||'').replace(/</g,'&lt;')}</textarea>`;
+  } else {
+    input = `<input class="field-base" value="${escaped}" oninput="${onchange}" placeholder="${placeholder}"/>`;
+  }
+  return `<div style="margin-bottom:16px;">${labelHtml}${input}</div>`;
+}
+function selectHTML(label, value, onchange, opts) {
+  const labelHtml = label ? `<div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.t3};margin-bottom:6px;">${label}</div>` : '';
+  const options = opts.map(o=>`<option value="${o}"${value===o?' selected':''}>${o}</option>`).join('');
+  return `<div style="margin-bottom:16px;">${labelHtml}<select class="field-base" onchange="${onchange}">${options}</select></div>`;
+}
+
+// ━━━ PLANNING PAGE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function getWeekDays() {
+  return Array.from({length:7}, (_,i) => addDays(getMonday(state.weekOffset), i));
+}
+function getEventsForDay(di) {
+  const wd = getWeekDays();
+  const ds = fmt(wd[di]);
+  return state.events.filter(e => e.date===ds || (e.repeat && e.dayOfWeek===di));
+}
+function renderPlanning() {
+  const wd = getWeekDays();
+  const today = new Date().toDateString();
+  const selEvs = getEventsForDay(state.selDay);
+  const month = wd[0].toLocaleDateString("fr-FR", {month:"long", year:"numeric"});
+  const totalPlanned = selEvs.filter(e=>e.outfit).length;
+  const totalRated = state.events.filter(e=>e.outfitRating&&e.outfitRating.style).length;
+  const totalWithOutfit = state.events.filter(e=>e.outfit).length;
+
+  // Daily rec
+  const recText = LocalAI.dailyRec(state.wardrobe, state.selDay, state.recKey);
+  if (recText !== state.recText) {
+    state.recText = recText;
+    state.typewriterDisplayed = '';
+    startTypewriter(recText, (displayed, running) => {
+      state.typewriterDisplayed = displayed;
+      const el = document.getElementById('tw-text');
+      if (el) {
+        el.innerHTML = displayed + (running ? `<span style="opacity:.4;animation:blink .7s step-end infinite;">▍</span>` : '');
+      }
+    });
+  }
+
+  const dayBtns = DAYS_S.map((d,i) => {
+    const dt = wd[i];
+    const isToday = dt.toDateString() === today;
+    const isSel = state.selDay === i;
+    const evs = getEventsForDay(i);
+    const hasOut = evs.some(e=>e.outfit);
+    const hasRate = evs.some(e=>e.outfitRating&&e.outfitRating.style);
+    let bg = T.bg, border = T.l1;
+    if (isSel) { bg = T.ink; border = T.ink; }
+    else if (isToday) { bg = T.s2; border = T.l2; }
+    const dots = [
+      evs.length>0 ? `<div style="width:3px;height:3px;background:${isSel?'rgba(255,255,255,0.4)':T.t3};"></div>` : '',
+      hasOut ? `<div style="width:3px;height:3px;background:${isSel?'rgba(255,255,255,0.7)':T.ink};"></div>` : '',
+      hasRate ? `<div style="width:3px;height:3px;background:${isSel?'rgba(255,210,40,0.9)':'#D97706'};"></div>` : '',
+    ].join('');
+    return `<button onclick="selectDay(${i})" style="background:${bg};border:1px solid ${border};padding:9px 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:background .1s,border-color .1s;">
+      <span style="font-size:7px;color:${isSel?'rgba(255,255,255,0.4)':T.t4};font-weight:800;letter-spacing:0.12em;">${d}</span>
+      <span style="font-size:18px;color:${isSel?'#fff':T.ink};font-weight:900;letter-spacing:-0.04em;line-height:1;">${dt.getDate()}</span>
+      <div style="display:flex;gap:2.5px;height:4px;align-items:center;">${dots}</div>
+    </button>`;
+  }).join('');
+
+  const eventsHTML = selEvs.length === 0 ? `
+    <div style="padding:40px 16px;text-align:center;background:${T.s1};">
+      ${ico('cal', 20, T.t4)}
+      <div style="font-size:12px;color:${T.t3};font-weight:700;margin-top:8px;">Aucun événement</div>
+      <div style="font-size:10px;color:${T.t4};margin-top:3px;">Appuie sur Événement pour planifier ta journée</div>
+    </div>` : selEvs.map((ev, idx) => {
+    const dot = EV_DOT[ev.type] || T.t2;
+    const isLast = idx === selEvs.length - 1;
+    const hasRating = ev.outfitRating && ev.outfitRating.style > 0;
+    const ratingHTML = hasRating ? `<div style="display:flex;gap:14px;margin-top:9px;padding-top:9px;border-top:1px solid ${T.l1};">
+      <div style="display:flex;align-items:center;gap:5px;"><div style="width:5px;height:5px;background:#D97706;"></div><span style="font-size:10px;color:${T.a};font-weight:800;">STYLE ${ev.outfitRating.style}/10</span></div>
+      <div style="display:flex;align-items:center;gap:5px;"><div style="width:5px;height:5px;background:${T.g};"></div><span style="font-size:10px;color:${T.g};font-weight:800;">PRATIQUE ${ev.outfitRating.practical}/10</span></div>
+    </div>` : '';
+    return `<div style="border-bottom:${isLast?'none':`1px solid ${T.l1}`};">
+      <div style="padding:12px 16px 10px;display:flex;justify-content:space-between;align-items:flex-start;">
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <div style="width:3px;min-height:36px;background:${dot};flex-shrink:0;margin-top:2px;"></div>
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:13px;font-weight:800;color:${T.ink};letter-spacing:-0.02em;">${ev.type}</span>
+              ${ev.repeat?`<span style="font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${T.t3};background:${T.s2};padding:2px 7px;">HEBDO</span>`:''}
+            </div>
+            ${ev.note?`<div style="font-size:11px;color:${T.t3};margin-top:2px;font-style:italic;">${ev.note}</div>`:''}
+          </div>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0;">
+          <button onclick="openRateSheet('${ev.id}')" title="Noter" style="background:${hasRating?T.aBg:T.s1};border:1px solid ${hasRating?'#FCD34D':T.l1};width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;">${ico('rat', 12, hasRating?T.a:T.t4, 1.4)}</button>
+          <button onclick="openEditEvSheet('${ev.id}')" title="Modifier" style="background:${T.s1};border:1px solid ${T.l1};width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;">${ico('edt', 12, T.t3)}</button>
+          <button onclick="deleteEvent('${ev.id}')" title="Supprimer" style="background:${T.rBg};border:1px solid ${T.r}18;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;">${ico('del', 12, T.r)}</button>
+        </div>
+      </div>
+      <div style="margin:0 16px 13px 29px;background:${T.s1};border:1px solid ${T.l1};padding:10px 12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${ev.outfit?8:0}px;">
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.t3};">Tenue</div>
+          <button onclick="openOutfitSheet('${ev.id}',false)" style="background:${ev.outfit?T.ink:T.bg};border:1px solid ${ev.outfit?T.ink:T.l2};padding:3px 9px;font-size:10px;font-weight:800;letter-spacing:0.08em;color:${ev.outfit?'#fff':T.t2};cursor:pointer;font-family:inherit;text-transform:uppercase;">${ev.outfit?'Modifier':'Ajouter'}</button>
+        </div>
+        ${ev.outfit?`<p style="font-size:13px;color:${T.ink};line-height:1.6;margin:0;font-weight:500;">${ev.outfit}</p>`:`<p style="font-size:12px;color:${T.t4};margin:6px 0 0;font-style:italic;">Aucune tenue définie</p>`}
+        ${ratingHTML}
+      </div>
+    </div>`;
+  }).join('');
+
+  const twDisplayed = state.typewriterDisplayed || '';
+  const twRunning = twDisplayed.length < (state.recText||'').length;
+
+  return `
+    <div style="padding-bottom:20px;margin-bottom:20px;border-bottom:1px solid ${T.l1};">
+      <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.t3};margin-bottom:8px;">${new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}</div>
+      <div style="font-size:32px;font-weight:900;letter-spacing:-0.04em;color:${T.ink};line-height:1;">Bonjour Yanis</div>
+      <div style="display:flex;gap:0;margin-top:14px;border-top:1px solid ${T.l1};">
+        <div style="flex:1;padding:12px 0;">
+          <div style="font-size:20px;font-weight:900;letter-spacing:-0.04em;color:${T.ink};line-height:1;">${totalPlanned}/${selEvs.length}</div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.t3};margin-top:4px;">Tenues planif.</div>
+        </div>
+        <div style="flex:1;padding:12px 0 12px 14px;border-left:1px solid ${T.l1};">
+          <div style="font-size:20px;font-weight:900;letter-spacing:-0.04em;color:${T.ink};line-height:1;">${totalRated}</div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.t3};margin-top:4px;">Tenues notées</div>
+        </div>
+        <div style="flex:1;padding:12px 0 12px 14px;border-left:1px solid ${T.l1};">
+          <div style="font-size:20px;font-weight:900;letter-spacing:-0.04em;color:${T.ink};line-height:1;">${totalWithOutfit}</div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.t3};margin-top:4px;">Total planifiées</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:${T.ink};padding:16px 18px;margin-bottom:24px;position:relative;overflow:hidden;">
+      <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 24px,rgba(255,255,255,0.018) 24px,rgba(255,255,255,0.018) 25px),repeating-linear-gradient(90deg,transparent,transparent 24px,rgba(255,255,255,0.018) 24px,rgba(255,255,255,0.018) 25px);pointer-events:none;"></div>
+      <div style="position:relative;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:7px;">
+            ${ico('spk', 11, 'rgba(255,255,255,0.3)', 1.5)}
+            <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.3);">Suggestion du jour</div>
+          </div>
+          <button onclick="refreshRec()" style="background:none;border:1px solid rgba(255,255,255,0.12);padding:4px 10px;font-size:9px;color:rgba(255,255,255,0.4);cursor:pointer;font-family:inherit;font-weight:800;letter-spacing:0.12em;">RAFRAÎCHIR</button>
+        </div>
+        <p id="tw-text" style="font-size:14px;color:rgba(255,255,255,0.88);line-height:1.72;margin:0;font-weight:400;">${twDisplayed}${twRunning?`<span style="opacity:.4;animation:blink .7s step-end infinite;">▍</span>`:''}</p>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <button onclick="changeWeek(-1)" style="background:none;border:none;cursor:pointer;padding:4px 2px;display:flex;">${ico('cL', 17, T.t2, 2.2)}</button>
+      <div style="text-align:center;">
+        <span style="font-size:12px;font-weight:800;letter-spacing:0.02em;text-transform:capitalize;color:${T.ink};">${month}</span>
+        ${state.weekOffset===0?`<span style="font-size:10px;color:${T.t3};margin-left:8px;font-weight:600;">Cette semaine</span>`:`<span onclick="changeWeek(0,'reset')" style="font-size:10px;color:${T.t3};margin-left:8px;font-weight:600;cursor:pointer;text-decoration:underline;">↩ Aujourd'hui</span>`}
+      </div>
+      <button onclick="changeWeek(1)" style="background:none;border:none;cursor:pointer;padding:4px 2px;display:flex;">${ico('cR', 17, T.t2, 2.2)}</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:20px;">${dayBtns}</div>
+
+    <div style="border:1px solid ${T.l1};">
+      <div style="padding:12px 16px;border-bottom:1px solid ${T.l1};display:flex;justify-content:space-between;align-items:center;background:${T.s1};">
+        <div>
+          <div style="font-size:16px;font-weight:900;letter-spacing:-0.03em;color:${T.ink};line-height:1;">${DAYS_F[state.selDay]}</div>
+          <div style="font-size:10px;color:${T.t3};margin-top:2px;font-weight:600;">${wd[state.selDay].toLocaleDateString("fr-FR",{day:"numeric",month:"long"})}${selEvs.length>0?` · ${selEvs.length} événement${selEvs.length>1?'s':''}`:''}
+          </div>
+        </div>
+        <div style="display:flex;gap:7px;">
+          <button onclick="openAddEvSheet()" class="btn-outline btn-small" style="display:flex;align-items:center;gap:6px;">${ico('pls',12,T.t2,1.8)}Événement</button>
+          <button onclick="openOutfitSheet(null,true)" class="btn-primary btn-small" style="display:flex;align-items:center;gap:6px;">${ico('lyr',12,'#fff',2)}Tenue</button>
+        </div>
+      </div>
+      ${eventsHTML}
+    </div>`;
+}
+
+// ━━━ WARDROBE PAGE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderWardrobe() {
+  let filtered = state.wardrobe;
+  const search = state.wardrobeSearch;
+  const catFilter = state.wardrobeCatFilter;
+  if (search) filtered = filtered.filter(i => i.name.toLowerCase().includes(search.toLowerCase()) || i.brand.toLowerCase().includes(search.toLowerCase()) || i.color.toLowerCase().includes(search.toLowerCase()));
+  if (catFilter) filtered = filtered.filter(i => i.category === catFilter);
+
+  const avgScore = state.wardrobe.length ? Math.round(state.wardrobe.reduce((a,w)=>(a+(w.scoreLike+w.scoreCut)/2),0)/state.wardrobe.length*10)/10 : 0;
+  const catList = CATS.map(cat=>({cat,count:state.wardrobe.filter(w=>w.category===cat).length})).filter(c=>c.count>0);
+
+  const pillsHTML = catList.map(({cat,count}) => {
+    const on = catFilter === cat;
+    return `<button onclick="setWardrobeCatFilter('${cat}')" class="cat-pill${on?' active':''}">${cat}<span style="opacity:.5;font-size:8px;margin-left:3px;">${count}</span></button>`;
+  });
+  const allPill = `<button onclick="setWardrobeCatFilter(null)" class="cat-pill${!catFilter?' active':''}">Tout</button>`;
+
+  const secContent = state.wardrobeSec === 'pieces' ? renderWardrobePieces(filtered, catList, catFilter, search, pillsHTML, allPill) : renderWardrobeOutfits();
+
+  return `
+    <div style="padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid ${T.l1};">
+      <div style="font-size:28px;font-weight:900;letter-spacing:-0.04em;color:${T.ink};line-height:1;">Garde-robe</div>
+      <div style="display:flex;gap:0;margin-top:16px;border-top:1px solid ${T.l1};">
+        <div style="flex:1;padding:12px 0;">
+          <div style="font-size:22px;font-weight:900;letter-spacing:-0.04em;color:${T.ink};line-height:1;">${state.wardrobe.length}</div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.t3};margin-top:4px;">Pièces</div>
+        </div>
+        <div style="flex:1;padding:12px 0 12px 16px;border-left:1px solid ${T.l1};">
+          <div style="font-size:22px;font-weight:900;letter-spacing:-0.04em;color:${T.ink};line-height:1;">${state.outfits.length}</div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.t3};margin-top:4px;">Tenues</div>
+        </div>
+        <div style="flex:1;padding:12px 0 12px 16px;border-left:1px solid ${T.l1};">
+          <div style="font-size:22px;font-weight:900;letter-spacing:-0.04em;color:${T.ink};line-height:1;">${avgScore||'—'}</div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.t3};margin-top:4px;">Moy. appréc.</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div style="display:flex;border-bottom:2px solid ${T.l1};gap:0;" class="tabs-underline">
+        <button onclick="setWardrobeSec('pieces')" class="${state.wardrobeSec==='pieces'?'active':''}" style="padding-right:16px;">PIÈCES</button>
+        <button onclick="setWardrobeSec('outfits')" class="${state.wardrobeSec==='outfits'?'active':''}" style="padding-right:16px;">TENUES</button>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button onclick="runAnalysis()" class="btn-outline btn-small" style="display:flex;align-items:center;gap:6px;" id="analyze-btn">${ico('bar',12,T.t2,1.8)}${state.analysisLoading?'ANALYSE…':'Analyse'}</button>
+        <button onclick="openAddWardrobeSheet()" class="btn-primary btn-small" style="display:flex;align-items:center;gap:6px;">${ico('pls',12,'#fff',2)}Ajouter</button>
+      </div>
+    </div>
+    ${secContent}`;
+}
+
+function renderWardrobePieces(filtered, catList, catFilter, search, pillsHTML, allPill) {
+  const byCat = CATS.map(cat => ({cat, items: filtered.filter(w=>w.category===cat)})).filter(g=>g.items.length>0);
+  const searchBar = `<div style="position:relative;margin-bottom:12px;">
+    <div style="position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none;">${ico('srch',14,T.t4,1.8)}</div>
+    <input class="field-base" value="${search.replace(/"/g,'&quot;')}" oninput="setWardrobeSearch(this.value)" placeholder="Rechercher vêtement, marque, couleur…" style="padding-left:34px;font-size:13px;"/>
+    ${search?`<button onclick="setWardrobeSearch('')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;display:flex;line-height:1;">${ico('cls',12,T.t3)}</button>`:''}
+  </div>`;
+  const pillsSection = !search ? `<div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-bottom:16px;">${allPill}${pillsHTML.join('')}</div>` : '';
+  const resultInfo = (search||catFilter) ? `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <span style="font-size:11px;color:${T.t3};font-weight:600;">${filtered.length} résultat${filtered.length!==1?'s':''}</span>
+    <button onclick="clearWardrobeFilters()" style="background:none;border:none;font-size:10px;color:${T.t3};cursor:pointer;font-weight:800;letter-spacing:0.06em;font-family:inherit;text-decoration:underline;">Tout effacer</button>
+  </div>` : '';
+
+  if (byCat.length === 0) return searchBar + pillsSection + resultInfo + `<div style="text-align:center;padding:60px 0;border:1px dashed ${T.l1};">
+    ${ico(search?'srch':'hng', 26, T.t4)}
+    <div style="font-size:12px;color:${T.t3};font-weight:700;margin-top:10px;">${search?'Aucun résultat':'Garde-robe vide'}</div>
+    ${!search?`<button onclick="openAddWardrobeSheet()" style="margin-top:14px;background:${T.ink};border:none;padding:9px 20px;font-size:11px;cursor:pointer;font-family:inherit;color:#fff;font-weight:700;letter-spacing:0.06em;">+ Ajouter un vêtement</button>`:''}
+  </div>`;
+
+  const catHTML = byCat.map(({cat, items}) => {
+    const analysis = state.analysis;
+    const score = analysis && analysis.scores ? analysis.scores[cat] : null;
+    const itemCards = items.map(item => {
+      const cutFill = Array.from({length:10},(_,i)=>`<div style="flex:1;height:2px;background:${i<item.scoreCut?(item.scoreCut>=7?T.g:item.scoreCut>=5?T.a:T.r):T.s3};"></div>`).join('');
+      const likeFill = Array.from({length:10},(_,i)=>`<div style="flex:1;height:2px;background:${i<item.scoreLike?(item.scoreLike>=7?T.g:item.scoreLike>=5?T.a:T.r):T.s3};"></div>`).join('');
+      return `<button onclick="openEditWardrobeSheet('${item.id}')" class="card-item">
+        ${item.photo?`<img src="${item.photo}" alt="${item.name}" style="width:148px;height:185px;object-fit:cover;display:block;"/>`:colorTile(item.color,185,'148px')}
+        <div style="padding:9px 11px 11px;border-top:1px solid ${T.l1};">
+          <div style="font-size:12px;font-weight:800;color:${T.ink};letter-spacing:-0.02em;line-height:1.2;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:2px;">${item.name}</div>
+          <div style="font-size:9px;color:${T.t3};font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:7px;">${item.brand}</div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;align-items:center;gap:5px;"><span style="font-size:7px;color:${T.t4};font-weight:700;min-width:28px;letter-spacing:0.04em;">COUPE</span><div style="display:flex;flex:1;gap:1px;">${cutFill}</div></div>
+            <div style="display:flex;align-items:center;gap:5px;"><span style="font-size:7px;color:${T.t4};font-weight:700;min-width:28px;letter-spacing:0.04em;">APPRÉC</span><div style="display:flex;flex:1;gap:1px;">${likeFill}</div></div>
+          </div>
+        </div>
+      </button>`;
+    }).join('');
+    return `<div style="margin-bottom:28px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid ${T.l1};">
+        <div style="display:flex;align-items:baseline;gap:10px;">
+          <span style="font-size:12px;font-weight:900;letter-spacing:0.06em;text-transform:uppercase;color:${T.ink};">${cat}</span>
+          <span style="font-size:10px;color:${T.t4};font-weight:700;">${items.length}</span>
+        </div>
+        ${score!=null?scoreBadge(Math.round(score),true):''}
+      </div>
+      <div style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px;">
+        ${itemCards}
+        <button onclick="openAddWardrobeSheet()" style="flex-shrink:0;width:72px;background:none;border:1px dashed ${T.l1};cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:214px;color:${T.t4};transition:border-color .15s;">
+          ${ico('pls',16,T.t4,1.4)}<span style="font-size:8px;font-weight:800;letter-spacing:0.1em;color:${T.t4};">AJOUTER</span>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+  return searchBar + pillsSection + resultInfo + catHTML;
+}
+
+function renderWardrobeOutfits() {
+  const outfits = state.outfits;
+  const addBtn = `<button onclick="openAddOutfitSheet()" style="width:100%;background:none;border:1px dashed ${T.l2};padding:13px;color:${T.t2};cursor:pointer;font-size:11px;margin-bottom:14px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;">${ico('pls',12,T.t2)}CRÉER UNE TENUE</button>`;
+  if (!outfits.length) return addBtn + `<div style="text-align:center;padding:52px 0;border:1px dashed ${T.l1};">${ico('lyr',22,T.t4)}<div style="font-size:12px;color:${T.t3};font-weight:700;margin-top:10px;">Aucune tenue créée</div></div>`;
+  const cards = outfits.map(o => {
+    const cols = o.items.map(nm=>state.wardrobe.find(w=>w.name===nm)?.color).filter(Boolean);
+    const colorBar = cols.length ? cols.slice(0,4).map(c=>`<div style="flex:1;background:${COL_HEX[c]||T.s2};"></div>`).join('') : `<div style="flex:1;background:${T.s2};"></div>`;
+    return `<button onclick="openEditOutfitSheet('${o.id}')" class="outfit-card" style="text-align:left;">
+      <div style="height:5px;display:flex;">${colorBar}</div>
+      <div style="padding:10px 12px 12px;flex:1;">
+        <div style="font-size:12px;font-weight:900;color:${T.ink};letter-spacing:-0.02em;line-height:1.2;margin-bottom:4px;">${o.name}</div>
+        <div style="font-size:10px;color:${T.t3};font-weight:600;line-height:1.55;margin-bottom:${o.rating?7:0}px;">${o.items.slice(0,3).join(' · ')}${o.items.length>3?` +${o.items.length-3}`:''}</div>
+        ${o.rating>0?scoreBadge(o.rating,true):''}
+      </div>
+    </button>`;
+  }).join('');
+  return addBtn + `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">${cards}</div>`;
+}
+
+// ━━━ STYLE AI PAGE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderStyleAI() {
+  const bought = state.wish.filter(w=>w.bought).length;
+  const totalBudget = state.wish.filter(w=>!w.bought).reduce((s,w)=>s+(parseFloat(w.price)||0),0);
+  const recsContent = state.styleTab==='recs' ? renderStyleRecs() : renderWishlist();
+  return `
+    <div style="padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid ${T.l1};">
+      <div style="font-size:28px;font-weight:900;letter-spacing:-0.04em;color:${T.ink};line-height:1;">Style IA</div>
+      <div style="display:flex;gap:0;margin-top:14px;border-top:1px solid ${T.l1};">
+        <div style="flex:1;padding:12px 0;">
+          <div style="font-size:20px;font-weight:900;letter-spacing:-0.04em;color:${T.ink};line-height:1;">${state.wish.length}</div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.t3};margin-top:4px;">Articles</div>
+        </div>
+        <div style="flex:1;padding:12px 0 12px 14px;border-left:1px solid ${T.l1};">
+          <div style="font-size:20px;font-weight:900;letter-spacing:-0.04em;color:${T.ink};line-height:1;">${bought}</div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.t3};margin-top:4px;">Achetés</div>
+        </div>
+        <div style="flex:1;padding:12px 0 12px 14px;border-left:1px solid ${T.l1};">
+          <div style="font-size:20px;font-weight:900;letter-spacing:-0.04em;color:${T.ink};line-height:1;">${totalBudget?totalBudget+'€':'0€'}</div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.t3};margin-top:4px;">Budget restant</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;border-bottom:2px solid ${T.l1};margin-bottom:18px;" class="tabs-underline">
+      <button onclick="setStyleTab('recs')" class="${state.styleTab==='recs'?'active':''}" style="flex:1;">RECOMMANDATIONS</button>
+      <button onclick="setStyleTab('wish')" class="${state.styleTab==='wish'?'active':''}" style="flex:1;">WISHLIST</button>
+    </div>
+    ${recsContent}`;
+}
+
+function renderStyleRecs() {
+  const recs = state.styleRecs;
+  const loading = state.styleRecsLoading;
+  const btn = `<button onclick="generateRecs()" class="btn-primary" style="width:100%;margin-bottom:${recs.length?14:16}px;display:flex;align-items:center;justify-content:center;gap:7px;" ${loading?'disabled':''}>
+    ${ico('bar',13,'#fff',2)}${loading?'ANALYSE EN COURS…':'ANALYSER MA GARDE-ROBE'}
+  </button>`;
+  if (!recs.length && !loading) return btn + `<div style="text-align:center;padding:52px 16px;border:1px dashed ${T.l1};">
+    ${ico('spk',22,T.t4)}<div style="font-size:13px;color:${T.t2};font-weight:800;margin-top:14px;letter-spacing:-0.02em;">Analyse personnalisée</div>
+    <div style="font-size:11px;color:${T.t4};margin-top:6px;line-height:1.72;max-width:240px;margin:8px auto 0;">L'analyse détecte les lacunes de ta garde-robe et suggère des achats stratégiques.</div>
+  </div>`;
+  if (loading) {
+    const skels = Array.from({length:6},(_,i)=>`<div style="border:1px solid ${T.l1};overflow:hidden;">
+      <div class="skel" style="height:120px;"></div>
+      <div style="padding:10px 11px 12px;"><div class="skel" style="height:10px;width:60%;margin-bottom:6px;"></div><div class="skel" style="height:9px;width:40%;margin-bottom:8px;"></div><div class="skel" style="height:9px;"></div></div>
+    </div>`).join('');
+    return btn + `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">${skels}</div>`;
+  }
+  const cards = recs.map((item,i) => {
+    const inW = !!state.wish.find(w=>w.name===item.name);
+    return `<div class="rec-card" style="animation:fadeIn .25s ease-out ${i*0.04}s both;">
+      ${colorTile(item.color, 110)}
+      <div style="padding:10px 11px 12px;border-top:1px solid ${T.l1};">
+        ${item.priority>=8?`<span style="font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${T.g};background:${T.gBg};padding:2px 7px;">PRIORITÉ</span>`:''}
+        <div style="font-size:12px;font-weight:900;color:${T.ink};letter-spacing:-0.02em;line-height:1.2;margin-top:${item.priority>=8?5:0}px;margin-bottom:2px;">${item.name}</div>
+        <div style="font-size:9px;color:${T.t3};font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:5px;">${item.brand}${item.price?` · ${item.price}€`:''}</div>
+        <div style="font-size:10px;color:${T.t2};line-height:1.58;margin-bottom:9px;">${item.reason}</div>
+        <button onclick="addToWishlist(${i})" ${inW?'disabled':''} style="width:100%;background:${inW?T.gBg:T.ink};border:1px solid ${inW?T.gBd:T.ink};padding:7px 0;font-size:9px;color:${inW?T.g:'#fff'};cursor:${inW?'default':'pointer'};font-family:inherit;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:5px;">
+          ${ico(inW?'chk':'pls',10,inW?T.g:'#fff',2.5)}${inW?'AJOUTÉ':'+ WISHLIST'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+  return btn + `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">${cards}</div>`;
+}
+
+function renderWishlist() {
+  const wish = state.wish;
+  const bought = wish.filter(w=>w.bought).length;
+  const header = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+    <div style="font-size:11px;font-weight:700;color:${T.t2};">${wish.length} ARTICLE${wish.length!==1?'S':''}${bought>0?`<span style="color:${T.g};margin-left:8px;">· ${bought} ACHETÉ${bought!==1?'S':''}</span>`:''}</div>
+    <button onclick="openAddWishSheet()" class="btn-primary btn-small" style="display:flex;align-items:center;gap:6px;">${ico('pls',12,'#fff',2)}Ajouter</button>
+  </div>`;
+  const progress = wish.length>0&&bought>0 ? `<div style="margin-bottom:14px;padding:11px 13px;background:${T.gBg};border:1px solid ${T.gBd};">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+      <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.g};">Progression</div>
+      <span style="font-size:11px;color:${T.g};font-weight:900;">${Math.round(bought/wish.length*100)}%</span>
+    </div>
+    <div style="height:3px;background:rgba(20,83,45,0.12);"><div style="width:${bought/wish.length*100}%;height:100%;background:${T.g};transition:width .4s ease-out;"></div></div>
+  </div>` : '';
+  if (!wish.length) return header + `<div style="text-align:center;padding:52px 16px;border:1px dashed ${T.l1};">${ico('str',22,T.t4)}<div style="font-size:12px;color:${T.t2};font-weight:800;margin-top:12px;">Wishlist vide</div><div style="font-size:11px;color:${T.t4};margin-top:5px;">Génère des recommandations ou ajoute des articles manuellement.</div></div>`;
+  const cards = wish.map(item => {
+    return `<div class="wishcard${item.bought?' bought':''}">
+      <div onclick="openEditWishSheet('${item.id}')" style="cursor:pointer;">
+        ${colorTile(item.color, 96, '100%', '')}
+        ${item.bought?`<div style="position:absolute;inset:0;top:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"></div>`:''}
+      </div>
+      <div style="padding:9px 11px 12px;border-top:1px solid ${T.l1};">
+        <div onclick="openEditWishSheet('${item.id}')" style="font-size:12px;font-weight:900;color:${T.ink};text-decoration:${item.bought?'line-through':'none'};letter-spacing:-0.02em;line-height:1.2;cursor:pointer;margin-bottom:2px;">${item.name}</div>
+        <div style="font-size:9px;color:${T.t3};font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:${item.price?3:8}px;">${item.brand}</div>
+        ${item.price?`<div style="font-size:14px;font-weight:900;color:${T.ink};margin-bottom:8px;letter-spacing:-0.02em;">${item.price}€</div>`:''}
+        <button onclick="toggleWishBought('${item.id}')" style="width:100%;background:${item.bought?T.gBg:T.ink};border:1px solid ${item.bought?T.gBd:T.ink};padding:7px 0;font-size:9px;color:${item.bought?T.g:'#fff'};cursor:pointer;font-family:inherit;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:5px;">
+          ${ico('chk',10,item.bought?T.g:'#fff',2.5)}${item.bought?'DÉMARQUER':'MARQUER ACHETÉ'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+  return header + progress + `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">${cards}</div>`;
+}
+
+// ━━━ SHEETS HTML ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function sheetWrapper(id, title, content, full=false) {
+  if (state.activeSheet !== id) return '';
+  return `<div class="sheet-overlay" onclick="closeSheet()"></div>
+  <div class="sheet-panel${full?' full':''}">
+    <div style="width:40px;height:3px;background:${T.s3};margin:12px auto 0;border-radius:2px;"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px 13px;border-bottom:1px solid ${T.l1};">
+      <span style="font-size:15px;font-weight:800;letter-spacing:-0.03em;color:${T.ink};">${title}</span>
+      <button onclick="closeSheet()" style="background:none;border:1px solid ${T.l1};width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:2px;">${ico('cls',12,T.t2)}</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:18px 18px 32px;-webkit-overflow-scrolling:touch;">${content}</div>
+  </div>`;
+}
+
+function renderAddEvSheet() {
+  const f = state.evForm;
+  return sheetWrapper('addEv', f._mode==='edit'?'Modifier l\'événement':'Nouvel événement', `
+    ${selectHTML('Type', f.type||'École', "updateEvForm('type',this.value)", EV_TYPES)}
+    ${fieldHTML('Tenue prévue', f.outfit||'', "updateEvForm('outfit',this.value)", 'Cargo noir + Tee blanc + NB 550…', true)}
+    ${fieldHTML('Note', f.note||'', "updateEvForm('note',this.value)", 'Remarques…')}
+    <div style="background:${T.s1};border:1px solid ${T.l1};padding:11px 14px;margin-bottom:18px;display:flex;align-items:center;gap:10px;">
+      <input type="checkbox" id="rep-check" ${f.repeat?'checked':''} onchange="updateEvForm('repeat',this.checked)" style="width:15px;height:15px;cursor:pointer;accent-color:${T.ink};"/>
+      <label for="rep-check" style="font-size:13px;color:${T.t1};cursor:pointer;user-select:none;font-weight:600;">Répéter chaque semaine</label>
+    </div>
+    <button onclick="saveEvent()" class="btn-primary" style="width:100%;">Sauvegarder</button>
+    ${f._mode==='edit'?`<button onclick="deleteEventFromSheet('${f.id}')" class="btn-danger"><span style="display:flex;align-items:center;gap:7px;">${ico('del',13,T.r)}Supprimer l'événement</span></button>`:''}
+  `);
+}
+
+function renderOutfitSheet() {
+  const f = state.outForm;
+  if (state.activeSheet !== 'outfit') return '';
+  const ev = state.sheetData.ev || {};
+  const dot = EV_DOT[ev.type] || T.t2;
+  const aiSug = state.aiSug;
+  const aiBlock = aiSug ? `<div style="background:${T.ink};padding:13px 14px;margin-bottom:14px;animation:fadeIn .2s ease-out;">
+    <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.32);margin-bottom:8px;">Suggestion</div>
+    <p style="font-size:13px;color:rgba(255,255,255,0.9);line-height:1.65;margin:0 0 10px;">${aiSug}</p>
+    <button onclick="useAiSug()" style="background:rgba(255,255,255,0.1);border:none;padding:6px 12px;font-size:10px;color:rgba(255,255,255,0.72);cursor:pointer;font-family:inherit;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;">UTILISER</button>
+  </div>` : '';
+  return sheetWrapper('outfit', 'Tenue du jour', `
+    <div style="background:${T.s1};border:1px solid ${T.l1};padding:10px 13px;margin-bottom:14px;display:flex;gap:9px;align-items:center;">
+      <div style="width:3px;height:28px;background:${dot};flex-shrink:0;"></div>
+      <div><div style="font-size:12px;font-weight:800;color:${T.ink};">${ev.type||'Tenue libre'}</div><div style="font-size:10px;color:${T.t3};margin-top:1px;">${DAYS_F[state.selDay]}</div></div>
+    </div>
+    <button onclick="getSuggestion()" style="width:100%;background:${T.s1};border:1px solid ${T.l2};padding:12px;font-size:12px;color:${T.ink};cursor:pointer;font-family:inherit;margin-bottom:12px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:8px;">
+      ${ico('spk',13,T.ink)}SUGGESTION TENUE
+    </button>
+    ${aiBlock}
+    ${fieldHTML('Tenue', f.outfit||'', "updateOutForm('outfit',this.value)", 'Cargo noir + Tee blanc + NB 550', true)}
+    ${fieldHTML('Note', f.note||'', "updateOutForm('note',this.value)", 'Remarques…')}
+    <button onclick="saveOutfit()" class="btn-primary" style="width:100%;">Sauvegarder</button>
+  `);
+}
+
+function renderRateSheet() {
+  if (state.activeSheet !== 'rate') return '';
+  const f = state.rateForm;
+  const ev = state.sheetData.ev || {};
+  return sheetWrapper('rate', 'Évaluer la tenue', `
+    <div style="background:${T.s1};border:1px solid ${T.l1};padding:11px 13px;margin-bottom:20px;">
+      <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.t3};margin-bottom:6px;">${ev.type||''} · ${DAYS_F[state.selDay]}</div>
+      <div style="font-size:13px;color:${T.ink};line-height:1.55;font-weight:500;">${ev.outfit||'Aucune tenue enregistrée'}</div>
+    </div>
+    ${scoreSliderHTML('Style & appréciation', f.style||5, 'setRateStyle')}
+    ${scoreSliderHTML('Praticité & confort', f.practical||5, 'setRatePractical')}
+    <button onclick="saveRating()" class="btn-primary" style="width:100%;">Valider la notation</button>
+  `);
+}
+
+function renderWardrobeSheet() {
+  if (state.activeSheet !== 'wardrobe') return '';
+  const f = state.wardrobeForm;
+  const isAdd = !f.id;
+  return sheetWrapper('wardrobe', isAdd?'Nouveau vêtement':'Modifier le vêtement', `
+    ${fieldHTML('Nom *', f.name||'', "updateWardrobeForm('name',this.value)", 'Ex: Cargo Ripstop')}
+    ${fieldHTML('Marque', f.brand||'', "updateWardrobeForm('brand',this.value)", 'Carhartt, Nike…')}
+    ${selectHTML('Catégorie', f.category||CATS[0], "updateWardrobeForm('category',this.value)", CATS)}
+    ${renderColorPicker(f.color||GR_COLS[0], 'wardrobe')}
+    <hr style="border:none;border-top:1px solid ${T.l1};margin:4px 0 16px;"/>
+    ${scoreSliderHTML('Coupe', f.scoreCut||5, 'setWardrobeCut')}
+    ${scoreSliderHTML('Appréciation', f.scoreLike||5, 'setWardrobeLike')}
+    ${scoreSliderHTML('Fréquence de port', f.scoreWorn||5, 'setWardrobeWorn')}
+    <hr style="border:none;border-top:1px solid ${T.l1};margin:4px 0 16px;"/>
+    <div style="margin-bottom:18px;">
+      <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.t3};margin-bottom:8px;">Photo</div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <label for="photo-input" class="btn-outline" style="padding:9px 16px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:7px;">Choisir une photo</label>
+        <input id="photo-input" type="file" accept="image/*" style="display:none;" onchange="onPhotoChange(this)"/>
+        ${f.photo?`<img src="${f.photo}" alt="" style="width:48px;height:48px;object-fit:cover;border:1px solid ${T.l1};"/>`:'' }
+      </div>
+    </div>
+    <button onclick="saveWardrobe()" class="btn-primary" style="width:100%;">Sauvegarder</button>
+    ${!isAdd?`<button onclick="deleteWardrobe('${f.id}')" class="btn-danger"><span style="display:flex;align-items:center;gap:7px;">${ico('del',13,T.r)}Supprimer ce vêtement</span></button>`:''}
+  `, true);
+}
+
+function renderOutfitSheetWardrobe() {
+  if (state.activeSheet !== 'outfitEdit') return '';
+  const f = state.outfitForm;
+  const isAdd = !f.id;
+  const catItems = CATS.map(cat => {
+    const its = state.wardrobe.filter(w=>w.category===cat);
+    if (!its.length) return '';
+    const rows = its.map(item => {
+      const sel = f.items && f.items.includes(item.name);
+      return `<button class="outfit-item-btn${sel?' selected':''}" onclick="toggleOutfitItem('${item.name.replace(/'/g,'\\\'')}')" style="background:${sel?T.ink:T.bg};">
+        <div style="width:14px;height:14px;background:${COL_HEX[item.color]||T.s2};border:1px solid ${sel?'rgba(255,255,255,0.15)':T.l1};flex-shrink:0;"></div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:11px;color:${sel?'#fff':T.ink};font-weight:800;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${item.name}</div>
+          <div style="font-size:9px;color:${sel?'rgba(255,255,255,0.42)':T.t3};margin-top:1px;">${item.brand} · ${item.color}</div>
+        </div>
+        ${sel?ico('chk',11,'rgba(255,255,255,0.6)',2.5):''}
+      </button>`;
+    }).join('');
+    return `<div><div style="font-size:8px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:${T.t4};padding:7px 10px;background:${T.s1};border-bottom:1px solid ${T.l1};">${cat}</div>${rows}</div>`;
+  }).join('');
+  const selCount = (f.items||[]).length;
+  return sheetWrapper('outfitEdit', isAdd?'Créer une tenue':'Modifier la tenue', `
+    ${fieldHTML('Nom de la tenue *', f.name||'', "updateOutfitForm('name',this.value)", 'Ex: Everyday Minimal')}
+    <div style="margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.t3};">Pièces · ${selCount} sélectionnée${selCount>1?'s':''}</div>
+        ${selCount>0?`<button onclick="clearOutfitItems()" style="background:none;border:none;font-size:9px;color:${T.r};cursor:pointer;font-weight:700;letter-spacing:0.06em;font-family:inherit;">TOUT DÉSÉLECT.</button>`:''}
+      </div>
+      <div style="max-height:300px;overflow-y:auto;border:1px solid ${T.l1};">${catItems}</div>
+    </div>
+    ${fieldHTML('Note', f.note||'', "updateOutfitForm('note',this.value)", 'Occasion, météo, style…')}
+    ${scoreSliderHTML('Note globale', f.rating||5, 'setOutfitRating')}
+    <button onclick="saveOutfitWardrobe()" class="btn-primary" style="width:100%;">Sauvegarder la tenue</button>
+    ${!isAdd?`<button onclick="deleteOutfit('${f.id}')" class="btn-danger"><span style="display:flex;align-items:center;gap:7px;">${ico('del',13,T.r)}Supprimer cette tenue</span></button>`:''}
+  `, true);
+}
+
+function renderAnalysisSheet() {
+  if (state.activeSheet !== 'analysis') return '';
+  const analysis = state.analysis;
+  const loading = state.analysisLoading;
+  let content = '';
+  if (loading) {
+    const skels = [100,80,90,70,85].map((w,i) => `<div style="border:1px solid ${T.l1};padding:12px 14px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><div class="skel" style="height:11px;width:${w*0.45}%;"></div><div class="skel" style="height:11px;width:18%;"></div></div>
+      <div class="skel" style="height:9px;margin-bottom:5px;"></div><div class="skel" style="height:9px;width:${w}%;margin-bottom:10px;"></div><div class="skel" style="height:2px;"></div>
+    </div>`).join('');
+    content = `<div style="background:${T.s1};border:1px solid ${T.l1};padding:18px 14px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:center;align-items:center;height:200px;flex-direction:column;gap:16px;">
+        <div style="display:flex;gap:5px;">${[0,1,2].map(i=>`<div style="width:8px;height:8px;background:${T.l2};border-radius:50%;animation:pulse .9s ease-in-out ${i*0.2}s infinite;"></div>`).join('')}</div>
+        <div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.t3};">Analyse en cours…</div>
+      </div>
+    </div>${skels}`;
+  } else if (analysis) {
+    const colorRpt = LocalAI.colorReport(state.wardrobe);
+    const catDetails = Object.entries(analysis.details).map(([cat, text]) => {
+      const raw = analysis.scores?.[cat];
+      const score = raw!=null ? Math.min(10,Math.max(1,Math.round(raw))) : null;
+      return `<div style="border:1px solid ${T.l1};padding:12px 14px;margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <span style="font-size:12px;font-weight:900;color:${T.ink};text-transform:uppercase;letter-spacing:0.04em;">${cat}</span>
+          ${score!=null?scoreBadge(score):''}
+        </div>
+        <p style="font-size:12px;color:${T.t2};line-height:1.72;margin:0 0 10px;">${text}</p>
+        ${score!=null?`<div style="height:2px;background:${T.s3};"><div style="width:${score*10}%;height:100%;background:${score>=7?T.g:score>=5?T.a:T.r};transition:width .6s ease-out;"></div></div>`:''}
+      </div>`;
+    }).join('');
+    content = `<div style="background:${T.s1};border:1px solid ${T.l1};padding:18px 14px;margin-bottom:14px;">${renderSpider(analysis.scores)}</div>
+    ${analysis.feedback?`<div style="background:${T.s1};border:1px solid ${T.l1};padding:13px 14px;margin-bottom:14px;"><div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.t3};margin-bottom:8px;">Analyse globale</div><p style="font-size:13px;color:${T.t1};line-height:1.78;margin:0;">${analysis.feedback}</p></div>`:''}
+    ${colorRpt?`<div style="background:${T.bBg};border:1px solid #BFDBFE;padding:13px 14px;margin-bottom:14px;"><div style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${T.b};margin-bottom:8px;">Palette de couleurs</div><p style="font-size:13px;color:${T.b};line-height:1.7;margin:0;">${colorRpt}</p></div>`:''}
+    ${catDetails}
+    <button onclick="runAnalysis()" class="btn-outline" style="width:100%;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:7px;">${ico('bar',12,T.t2,1.8)}Relancer l'analyse</button>`;
+  } else {
+    content = `<div style="text-align:center;padding:56px 0;">${ico('bar',22,T.t4)}<div style="font-size:12px;color:${T.t3};font-weight:700;margin-top:10px;">Aucune analyse disponible</div>
+    <button onclick="runAnalysis()" class="btn-primary" style="margin:16px auto 0;display:flex;align-items:center;gap:7px;">${ico('bar',13,'#fff',2)}Lancer l'analyse</button></div>`;
+  }
+  return sheetWrapper('analysis', 'Rapport garde-robe', content, true);
+}
+
+function renderWishSheet() {
+  if (state.activeSheet !== 'wish') return '';
+  const f = state.wishForm;
+  const isAdd = !f.id;
+  return sheetWrapper('wish', isAdd?'Ajouter à la wishlist':'Modifier l\'article', `
+    ${fieldHTML('Nom *', f.name||'', "updateWishForm('name',this.value)", 'Ex: Bomber satin noir')}
+    ${selectHTML('Catégorie', f.category||CATS[0], "updateWishForm('category',this.value)", CATS)}
+    ${renderColorPicker(f.color||GR_COLS[0], 'wish')}
+    ${fieldHTML('Marque', f.brand||'', "updateWishForm('brand',this.value)", 'Nike, Carhartt…')}
+    ${fieldHTML('Budget (€)', f.price||'', "updateWishFormPrice(this.value)", '80')}
+    ${fieldHTML('Note', f.reason||'', "updateWishForm('reason',this.value)", 'Pourquoi ce vêtement…', true)}
+    <button onclick="saveWish()" class="btn-primary" style="width:100%;">Sauvegarder</button>
+    ${!isAdd?`<button onclick="deleteWish('${f.id}')" class="btn-danger"><span style="display:flex;align-items:center;gap:7px;">${ico('del',13,T.r)}Supprimer de la wishlist</span></button>`:''}
+  `, true);
+}
+
+// ━━━ RENDER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function render() {
+  const app = document.getElementById('app');
+  const safeTop = `<div style="height:env(safe-area-inset-top,44px);background:#fff;"></div>`;
+  const header = `<header style="height:48px;padding:0 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid ${T.l1};background:#fff;position:sticky;top:env(safe-area-inset-top,0px);z-index:20;">
+    <span style="font-size:15px;font-weight:900;letter-spacing:0.06em;color:${T.ink};text-transform:uppercase;">GRISCH</span>
+    <span style="font-size:9px;font-weight:800;letter-spacing:0.14em;color:${T.t4};">${state.wardrobe.length} PIÈCES</span>
+  </header>`;
+  let pageContent = '';
+  if (state.tab === 0) pageContent = renderPlanning();
+  else if (state.tab === 1) pageContent = renderWardrobe();
+  else pageContent = renderStyleAI();
+  const main = `<main style="padding:20px 18px;padding-bottom:90px;overflow-y:auto;-webkit-overflow-scrolling:touch;">${pageContent}</main>`;
+  const nav = `<nav style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;border-top:1px solid ${T.l1};padding-bottom:env(safe-area-inset-bottom,12px);z-index:50;">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);">
+      ${[{l:'Planning',i:'cal'},{l:'Garde-robe',i:'hng'},{l:'Style IA',i:'str'}].map((t,i)=>{
+        const on = state.tab === i;
+        return `<button onclick="setTab(${i})" style="background:none;border:none;cursor:pointer;padding:12px 8px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;font-family:inherit;position:relative;">
+          ${on?`<div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:20px;height:2px;background:${T.ink};"></div>`:''}
+          ${ico(t.i, 20, on?T.ink:T.t4, on?2.2:1.6)}
+          <span style="font-size:8px;letter-spacing:0.14em;font-weight:${on?900:600};color:${on?T.ink:T.t4};text-transform:uppercase;">${t.l}</span>
+        </button>`;
+      }).join('')}
+    </div>
+  </nav>`;
+  app.innerHTML = safeTop + header + main + nav;
+  renderSheets();
+}
+
+function renderSheets() {
+  let sheetsHtml = '';
+  sheetsHtml += renderAddEvSheet();
+  sheetsHtml += renderOutfitSheet();
+  sheetsHtml += renderRateSheet();
+  sheetsHtml += renderWardrobeSheet();
+  sheetsHtml += renderOutfitSheetWardrobe();
+  sheetsHtml += renderAnalysisSheet();
+  sheetsHtml += renderWishSheet();
+  let container = document.getElementById('sheets-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'sheets-container';
+    document.body.appendChild(container);
+  }
+  container.innerHTML = sheetsHtml;
+}
+
+// ━━━ ACTIONS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function setTab(i) { state.tab = i; render(); }
+function selectDay(i) { state.selDay = i; state.recText = ''; state.typewriterDisplayed = ''; render(); }
+function changeWeek(dir, mode) { if (mode==='reset') state.weekOffset=0; else state.weekOffset+=dir; state.recText=''; state.typewriterDisplayed=''; render(); }
+function refreshRec() { state.recKey++; state.recText=''; state.typewriterDisplayed=''; render(); }
+
+function openAddEvSheet() {
+  state.evForm = {type:'École',repeat:false,dayOfWeek:state.selDay,date:fmt(getWeekDays()[state.selDay]),outfit:'',note:'',_mode:'add'};
+  openSheet('addEv');
+}
+function openEditEvSheet(id) {
+  const ev = state.events.find(e=>e.id===id);
+  if (!ev) return;
+  state.evForm = {...ev, _mode:'edit'};
+  openSheet('addEv');
+}
+function updateEvForm(key, val) { state.evForm[key]=val; renderSheets(); }
+function saveEvent() {
+  const f = state.evForm;
+  if (f._mode==='add') {
+    state.events.push({...f, id:Date.now()+'', outfitRating:{}, _mode:undefined});
+  } else {
+    const idx = state.events.findIndex(e=>e.id===f.id);
+    if (idx>=0) { const {_mode,...rest}=f; state.events[idx]={...rest}; }
+  }
+  save('gq_ev', state.events);
+  toast('Événement sauvegardé ✓','g');
+  closeSheet();
+}
+function deleteEvent(id) { state.events=state.events.filter(e=>e.id!==id); save('gq_ev',state.events); toast('Événement supprimé'); render(); }
+function deleteEventFromSheet(id) { deleteEvent(id); closeSheet(); }
+
+function openOutfitSheet(evId, standalone) {
+  const wd = getWeekDays();
+  if (standalone) {
+    state.sheetData = {ev:{id:null,type:'Tenue libre',outfit:'',note:''},standalone:true};
+    state.outForm = {outfit:'',note:'',evId:null,standalone:true,di:state.selDay,date:fmt(wd[state.selDay])};
+  } else {
+    const ev = state.events.find(e=>e.id===evId);
+    if (!ev) return;
+    state.sheetData = {ev};
+    state.outForm = {outfit:ev.outfit||'',note:ev.note||'',evId,standalone:false,di:state.selDay,date:fmt(wd[state.selDay])};
+  }
+  state.aiSug = '';
+  openSheet('outfit');
+}
+function updateOutForm(key, val) { state.outForm[key]=val; renderSheets(); }
+function getSuggestion() {
+  const ev = state.sheetData.ev || {};
+  state.aiSug = LocalAI.outfitSuggest(state.wardrobe, ev.type, state.selDay);
+  renderSheets();
+}
+function useAiSug() { state.outForm.outfit = state.aiSug; renderSheets(); }
+function saveOutfit() {
+  const f = state.outForm;
+  if (f.standalone) {
+    state.events.push({id:Date.now()+'',type:'Tenue libre',date:f.date,dayOfWeek:f.di,repeat:false,outfit:f.outfit,note:f.note,outfitRating:{}});
+  } else {
+    const idx = state.events.findIndex(e=>e.id===f.evId);
+    if (idx>=0) { state.events[idx]={...state.events[idx],outfit:f.outfit,note:f.note}; }
+  }
+  save('gq_ev',state.events);
+  toast('Tenue sauvegardée ✓','g');
+  closeSheet();
+}
+
+function openRateSheet(evId) {
+  const ev = state.events.find(e=>e.id===evId);
+  if (!ev) return;
+  state.sheetData = {ev};
+  state.rateForm = {style:ev.outfitRating?.style||5, practical:ev.outfitRating?.practical||5, evId};
+  openSheet('rate');
+}
+function setRateStyle(v) { state.rateForm.style=v; renderSheets(); }
+function setRatePractical(v) { state.rateForm.practical=v; renderSheets(); }
+function saveRating() {
+  const f = state.rateForm;
+  const idx = state.events.findIndex(e=>e.id===f.evId);
+  if (idx>=0) state.events[idx]={...state.events[idx],outfitRating:{style:f.style,practical:f.practical}};
+  save('gq_ev',state.events);
+  toast('Notation enregistrée ✓','g');
+  closeSheet();
+}
+
+function setWardrobeSec(sec) { state.wardrobeSec=sec; state.wardrobeSearch=''; state.wardrobeCatFilter=null; render(); }
+function setWardrobeSearch(val) { state.wardrobeSearch=val; render(); }
+function setWardrobeCatFilter(cat) { state.wardrobeCatFilter=cat; render(); }
+function clearWardrobeFilters() { state.wardrobeSearch=''; state.wardrobeCatFilter=null; render(); }
+
+function openAddWardrobeSheet() {
+  state.wardrobeForm = {name:'',brand:'',color:GR_COLS[0],category:CATS[0],scoreCut:7,scoreLike:7,scoreWorn:5,photo:''};
+  openSheet('wardrobe');
+}
+function openEditWardrobeSheet(id) {
+  const item = state.wardrobe.find(w=>w.id===id);
+  if (!item) return;
+  state.wardrobeForm = {...item};
+  openSheet('wardrobe');
+}
+function updateWardrobeForm(key, val) { state.wardrobeForm[key]=val; renderSheets(); }
+function setFormColor(formKey, color) {
+  if (formKey==='wardrobe') state.wardrobeForm.color=color;
+  else if (formKey==='wish') state.wishForm.color=color;
+  renderSheets();
+}
+function setWardrobeCut(v) { state.wardrobeForm.scoreCut=v; renderSheets(); }
+function setWardrobeLike(v) { state.wardrobeForm.scoreLike=v; renderSheets(); }
+function setWardrobeWorn(v) { state.wardrobeForm.scoreWorn=v; renderSheets(); }
+function onPhotoChange(input) {
+  const f = input.files[0];
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => { state.wardrobeForm.photo=rd.result; renderSheets(); };
+  rd.readAsDataURL(f);
+}
+function saveWardrobe() {
+  const f = state.wardrobeForm;
+  if (!f.name?.trim()) { toast('Le nom est obligatoire','err'); return; }
+  if (!f.id) { state.wardrobe.push({...f, id:Date.now()+''}); toast('Vêtement ajouté ✓','g'); }
+  else { const idx=state.wardrobe.findIndex(w=>w.id===f.id); if(idx>=0) state.wardrobe[idx]={...f}; toast('Modifications sauvegardées ✓','g'); }
+  save('gq_wr',state.wardrobe);
+  closeSheet();
+}
+function deleteWardrobe(id) { state.wardrobe=state.wardrobe.filter(w=>w.id!==id); save('gq_wr',state.wardrobe); toast('Vêtement supprimé'); closeSheet(); }
+
+function openAddOutfitSheet() {
+  state.outfitForm = {name:'',items:[],note:'',rating:5};
+  openSheet('outfitEdit');
+}
+function openEditOutfitSheet(id) {
+  const o = state.outfits.find(o=>o.id===id);
+  if (!o) return;
+  state.outfitForm = {...o, items:[...(o.items||[])]};
+  openSheet('outfitEdit');
+}
+function updateOutfitForm(key, val) { state.outfitForm[key]=val; renderSheets(); }
+function toggleOutfitItem(name) {
+  const items = state.outfitForm.items||[];
+  if (items.includes(name)) state.outfitForm.items=items.filter(x=>x!==name);
+  else state.outfitForm.items=[...items,name];
+  renderSheets();
+}
+function clearOutfitItems() { state.outfitForm.items=[]; renderSheets(); }
+function setOutfitRating(v) { state.outfitForm.rating=v; renderSheets(); }
+function saveOutfitWardrobe() {
+  const f = state.outfitForm;
+  if (!f.name?.trim()) { toast('Le nom est obligatoire','err'); return; }
+  if (!f.id) { state.outfits.push({...f, id:Date.now()+''}); toast('Tenue sauvegardée ✓','g'); }
+  else { const idx=state.outfits.findIndex(o=>o.id===f.id); if(idx>=0) state.outfits[idx]={...f}; toast('Tenue sauvegardée ✓','g'); }
+  save('gq_of',state.outfits);
+  closeSheet();
+}
+function deleteOutfit(id) { state.outfits=state.outfits.filter(o=>o.id!==id); save('gq_of',state.outfits); toast('Tenue supprimée'); closeSheet(); }
+
+function runAnalysis() {
+  state.analysisLoading=true;
+  state.analysis=null;
+  openSheet('analysis');
+  setTimeout(()=>{
+    try { state.analysis=LocalAI.analyze(state.wardrobe); toast('Analyse générée ✓','g'); }
+    catch(e) { toast('Erreur lors de l\'analyse','err'); }
+    state.analysisLoading=false;
+    renderSheets();
+  }, 750);
+}
+
+function setStyleTab(tab) { state.styleTab=tab; render(); }
+function generateRecs() {
+  state.styleRecsLoading=true;
+  render();
+  setTimeout(()=>{ state.styleRecs=LocalAI.styleRecs(state.wardrobe); state.styleRecsLoading=false; render(); }, 700);
+}
+function addToWishlist(idx) {
+  const item = state.styleRecs[idx];
+  if (!item) return;
+  if (!state.wish.find(w=>w.name===item.name)) {
+    state.wish.push({...item, id:Date.now()+'', bought:false});
+    save('gq_wl',state.wish);
+    toast('Ajouté à la wishlist ✓','g');
+  } else {
+    toast('Déjà dans la wishlist');
+  }
+  render();
+}
+function toggleWishBought(id) {
+  const item = state.wish.find(w=>w.id===id);
+  if (!item) return;
+  item.bought = !item.bought;
+  save('gq_wl',state.wish);
+  toast(item.bought?'Marqué comme acheté ✓':'Marqué comme non acheté','g');
+  render();
+}
+function openAddWishSheet() {
+  state.wishForm = {name:'',category:CATS[0],color:GR_COLS[0],brand:'',price:'',reason:'',bought:false};
+  openSheet('wish');
+}
+function openEditWishSheet(id) {
+  const item = state.wish.find(w=>w.id===id);
+  if (!item) return;
+  state.wishForm = {...item};
+  openSheet('wish');
+}
+function updateWishForm(key, val) { state.wishForm[key]=val; renderSheets(); }
+function updateWishFormPrice(val) { state.wishForm.price=val.replace(/[^0-9]/g,''); renderSheets(); }
+function saveWish() {
+  const f = state.wishForm;
+  if (!f.name?.trim()) { toast('Le nom est obligatoire','err'); return; }
+  if (!f.id) { state.wish.push({...f, id:Date.now()+''}); toast('Wishlist mise à jour ✓','g'); }
+  else { const idx=state.wish.findIndex(w=>w.id===f.id); if(idx>=0) state.wish[idx]={...f}; toast('Wishlist mise à jour ✓','g'); }
+  save('gq_wl',state.wish);
+  closeSheet();
+}
+function deleteWish(id) { state.wish=state.wish.filter(w=>w.id!==id); save('gq_wl',state.wish); toast('Retiré de la wishlist'); closeSheet(); }
+
+// ━━━ INIT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+render();
+// Start typewriter on load
+setTimeout(()=>{
+  const text = LocalAI.dailyRec(state.wardrobe, state.selDay, state.recKey);
+  state.recText = text;
+  startTypewriter(text, (displayed, running) => {
+    state.typewriterDisplayed = displayed;
+    const el = document.getElementById('tw-text');
+    if (el) el.innerHTML = displayed + (running?`<span style="opacity:.4;animation:blink .7s step-end infinite;">▍</span>`:'');
+  });
+}, 100);
+</script>
+</body>
+</html>
